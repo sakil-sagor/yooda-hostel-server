@@ -19,24 +19,31 @@ async function run() {
     try {
         await client.connect();
         const database = client.db("Yooda-Hostel");
-        const productsCollection = database.collection("foodItem");
+        const foodCollection = database.collection("foodItems");
 
 
 
-        // get all products or  products by search result
-        app.get('/foodItem', async (req, res) => {
-            const search = req.query.search;
-            if (search) {
-                const query = { productName: { $regex: search, $options: '$i' } }
-                const cursor = productsCollection.find(query);
-                const products = await cursor.toArray();
-                res.send(products);
-            } else {
-                const cursor = productsCollection.find({});
-                const products = await cursor.toArray();
-                res.send(products);
-            }
+        // get all foodeitems
+        app.get('/foodItems', async (req, res) => {
+            const cursor = foodCollection.find({});
+            const foods = await cursor.toArray();
+            res.send(foods);
+        })
 
+        // add single foodItems
+        app.post('/foodItems', async (req, res) => {
+            const food = req.body;
+            const result = await foodCollection.insertOne(food)
+            res.json(result);
+        })
+
+        // single food delete 
+        app.delete('/foodItems/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await foodCollection.deleteOne(query);
+            console.log(result);
+            res.json(result)
         })
 
 
@@ -57,7 +64,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Running Node Server')
+    res.send('Running Node Server ok')
 })
 
 app.listen(port, () => {
